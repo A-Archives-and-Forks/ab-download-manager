@@ -14,6 +14,20 @@
 
 ### Security
 
+## 1.10.0
+
+### Added
+
+- Native Messaging support, allowing the browser to launch the app if it's not already running
+- Command-line interface (CLI)
+- Support for API key authentication (#1335)
+
+### Improved
+
+- Faster app startup using the AOT cache (#1333)
+- Updated translations
+- Improved the speed limiter behavior (#1315)
+
 ## 1.9.2
 
 ### Added
