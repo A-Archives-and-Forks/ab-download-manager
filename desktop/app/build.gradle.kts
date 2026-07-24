@@ -6,6 +6,7 @@ import dev.nucleusframework.desktop.application.dsl.TargetFormat
 import ir.amirab.util.platform.Arch
 import ir.amirab.util.platform.Platform
 import ir.amirab.util.platform.isLinux
+import ir.amirab.util.platform.isMac
 import ir.amirab.util.platform.isWindows
 
 plugins {
@@ -92,7 +93,8 @@ aboutLibraries {
     }
 }
 
-val isAOTEnabled = true
+// aot can't be generated on macOS, it needs investigation
+val isAOTEnabled = !Platform.isMac()
 
 tasks.processResources {
     from(tasks.named("exportLibraryDefinitions"))
