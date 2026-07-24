@@ -14,6 +14,12 @@
 
 ### Security
 
+## 1.10.1
+
+### Changed
+
+- Disabled the AOT Cache
+
 ## 1.10.0
 
 ### Added

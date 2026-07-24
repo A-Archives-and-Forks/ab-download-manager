@@ -93,8 +93,7 @@ aboutLibraries {
     }
 }
 
-// aot can't be generated on macOS, it needs investigation
-val isAOTEnabled = !Platform.isMac()
+val isAOTEnabled = false
 
 tasks.processResources {
     from(tasks.named("exportLibraryDefinitions"))
