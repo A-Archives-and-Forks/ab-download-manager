@@ -2,9 +2,11 @@ package com.abdownloadmanager.desktop.nativemessaging
 
 import com.abdownloadmanager.desktop.utils.AppInfo
 import com.abdownloadmanager.shared.util.SharedConstants
+import io.ktor.util.Platform
 import ir.amirab.util.logger.thisLogger
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 data class NativeMessagingManifests(
     val firefoxNativeMessagingManifest: FirefoxNativeMessagingManifest,
@@ -97,8 +99,8 @@ class NativeMessaging(
     }
 
     companion object {
-        fun getDefault(): NativeMessaging {
-            return NativeMessaging(NativeMessagingManifestApplier.getForCurrentPlatform())
+        fun getDefault(json: Json): NativeMessaging {
+            return NativeMessaging(NativeMessagingManifestApplier.getForCurrentPlatform(json))
         }
     }
 }

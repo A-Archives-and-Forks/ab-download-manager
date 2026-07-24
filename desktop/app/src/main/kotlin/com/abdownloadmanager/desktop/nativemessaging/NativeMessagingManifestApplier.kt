@@ -5,16 +5,17 @@ import com.abdownloadmanager.desktop.utils.AppProperties
 import com.abdownloadmanager.desktop.utils.isAppInstalled
 import ir.amirab.util.createParentDirectories
 import ir.amirab.util.deleteIfExists
-import ir.amirab.util.platform.Platform
 import ir.amirab.util.desktop.WindowsRegistry
+import ir.amirab.util.platform.Platform
 import ir.amirab.util.writeText
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.writeText
 
-abstract class NativeMessagingManifestApplier : KoinComponent {
-    protected val json by inject<Json>()
+abstract class NativeMessagingManifestApplier(val json: Json) : KoinComponent {
     protected inline fun <reified T : Any> serialize(data: T): String {
         return json.encodeToString(data)
     }
@@ -27,21 +28,21 @@ abstract class NativeMessagingManifestApplier : KoinComponent {
     abstract fun removeManifests()
 
     companion object {
-        fun getForCurrentPlatform(): NativeMessagingManifestApplier {
-            if (!AppInfo.isAppInstalled()){
-                return NoOpNativeMessagingApplier()
+        fun getForCurrentPlatform(json: Json): NativeMessagingManifestApplier {
+            if (!AppInfo.isAppInstalled()) {
+                return NoOpNativeMessagingApplier(json)
             }
-            return when(AppInfo.platform){
-                Platform.Desktop.Linux -> LinuxNativeMessagingManifestApplier()
-                Platform.Desktop.MacOS -> MacosNativeMessagingManifestApplier()
-                Platform.Desktop.Windows -> WindowsNativeMessagingManifestApplier()
+            return when (AppInfo.platform) {
+                Platform.Desktop.Linux -> LinuxNativeMessagingManifestApplier(json)
+                Platform.Desktop.MacOS -> MacosNativeMessagingManifestApplier(json)
+                Platform.Desktop.Windows -> WindowsNativeMessagingManifestApplier(json)
                 Platform.Android -> error("there is no native messaging for android so this code should never used in android")
             }
         }
     }
 }
 
-class WindowsNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
+class WindowsNativeMessagingManifestApplier(json: Json) : NativeMessagingManifestApplier(json) {
     private val baseNativeMessagingDir get() = AppInfo.definedPaths.configDir / "native_messaging"
     private val firefoxManifestFile get() = baseNativeMessagingDir / "firefox" / "${AppInfo.packageName}.json"
     private val chromeManifestFile get() = baseNativeMessagingDir / "chrome" / "${AppInfo.packageName}.json"
@@ -82,20 +83,24 @@ class WindowsNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
 
 }
 
-class MacosNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
+class MacosNativeMessagingManifestApplier(
+    json: Json
+) : NativeMessagingManifestApplier(json) {
     private val firefoxNativeMessagingPath
-        get() = Path(AppProperties.userDir, "Library/Application Support/Mozilla/NativeMessagingHosts",
+        get() = Path(
+            AppProperties.userDir, "Library/Application Support/Mozilla/NativeMessagingHosts",
             "${AppInfo.packageName}.json"
         )
     private val chromeNativeMessagingPath
-        get() = Path(AppProperties.userDir, "Library/Application Support/Google/Chrome/NativeMessagingHosts",
+        get() = Path(
+            AppProperties.userDir, "Library/Application Support/Google/Chrome/NativeMessagingHosts",
             "${AppInfo.packageName}.json"
         )
     private val chromiumNativeMessagingPath
-        get() = Path(AppProperties.userDir, "Library/Application Support/Chromium/NativeMessagingHosts",
+        get() = Path(
+            AppProperties.userDir, "Library/Application Support/Chromium/NativeMessagingHosts",
             "${AppInfo.packageName}.json"
         )
-
 
 
     override fun updateManifests(manifests: NativeMessagingManifests) {
@@ -106,7 +111,7 @@ class MacosNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
         ).forEach { it.createParentDirectories() }
 
         firefoxNativeMessagingPath.writeText(serialize(manifests.firefoxNativeMessagingManifest))
-        val chromeManifestString=serialize(manifests.chromeNativeMessagingManifest)
+        val chromeManifestString = serialize(manifests.chromeNativeMessagingManifest)
         chromeNativeMessagingPath.writeText(chromeManifestString)
         chromiumNativeMessagingPath.writeText(chromeManifestString)
     }
@@ -118,7 +123,11 @@ class MacosNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
     }
 }
 
-class LinuxNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
+class LinuxNativeMessagingManifestApplier(
+    json: Json
+) : NativeMessagingManifestApplier(
+    json
+) {
     private val firefoxNativeMessagingPath
         get() = Path(AppProperties.userDir, ".mozilla/native-messaging-hosts", "${AppInfo.packageName}.json")
     private val chromeNativeMessagingPath
@@ -146,7 +155,11 @@ class LinuxNativeMessagingManifestApplier : NativeMessagingManifestApplier() {
     }
 }
 
-class NoOpNativeMessagingApplier : NativeMessagingManifestApplier() {
+class NoOpNativeMessagingApplier(
+    json: Json
+) : NativeMessagingManifestApplier(
+    json,
+) {
     override fun updateManifests(manifests: NativeMessagingManifests) {
         //no-op
     }

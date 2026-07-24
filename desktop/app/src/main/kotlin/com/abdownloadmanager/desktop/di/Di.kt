@@ -477,7 +477,7 @@ val startUpModule = module {
 }
 val nativeMessagingModule = module {
     single<NativeMessaging> {
-        NativeMessaging.getDefault()
+        NativeMessaging.getDefault(get())
     }
 }
 
